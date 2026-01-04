@@ -1,0 +1,627 @@
+/* Fullscreen single-screen mobile-first layout */
+:root{
+  --bg:#101216;
+  --ui:#ffffffcc;
+  --accent:#4db6ac;
+}
+html,body{
+  height:100%;
+  margin:0;
+  background:var(--bg);
+  color:var(--ui);
+  font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  touch-action:none;
+  overscroll-behavior-y:none;
+}
+#c{
+  position:fixed;
+  inset:0;
+  width:100%;
+  height:100%;
+  display:block;
+  background:linear-gradient(180deg,#0d0f12 0%, #071018 100%);
+}
+
+/* UI overlay */
+#ui{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+}
+.joystick{
+  position: absolute;
+  bottom:18px;
+  left:18px;
+  width:140px;
+  height:140px;
+  pointer-events:auto;
+  touch-action:none;
+  -webkit-user-select:none;
+}
+.touch-area{
+  position:absolute;
+  right:0;
+  bottom:0;
+  width:50%;
+  height:100%;
+  pointer-events:auto;
+  touch-action:none;
+}
+#hud{
+  position:absolute;
+  top:12px;
+  left:12px;
+  pointer-events:none;
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+
+/* Asset highlight panel (top-right middle) */
+#asset-highlight{
+  position:absolute;
+  right:12px;
+  top:18px;
+  transform: translateY(0);
+  pointer-events:none;
+  z-index:60;
+  min-width:160px;
+  max-width:42vw;
+  text-align:left;
+}
+#asset-highlight .asset-panel{
+  background:linear-gradient(180deg, rgba(6,8,10,0.96), rgba(12,16,18,0.92));
+  border:1px solid rgba(255,255,255,0.04);
+  padding:8px 10px;
+  border-radius:10px;
+  box-shadow:0 6px 20px rgba(0,0,0,0.5);
+  color:var(--ui);
+  pointer-events:none;
+}
+#asset-highlight #asset-name{
+  font-size:14px;
+  color:var(--accent);
+}
+#asset-highlight #asset-info{
+  font-size:12px;
+  color:rgba(255,255,255,0.85);
+}
+#fps{
+  background:rgba(0,0,0,0.35);
+  color:var(--ui);
+  padding:6px 8px;
+  border-radius:8px;
+  font-size:13px;
+  min-width:72px;
+  text-align:center;
+}
+
+/* small version badge shown beside FPS for quick reference */
+#version{
+  background:rgba(255,255,255,0.03);
+  color:rgba(255,255,255,0.75);
+  font-size:12px;
+  padding:6px 8px;
+  border-radius:8px;
+  margin-left:8px;
+  font-weight:700;
+}
+
+/* Achievement window (bottom-right) - styled like a small settings window */
+#achievement{
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 70;
+  pointer-events: none; /* container default, window itself receives events */
+  display: none;
+  min-width: 220px;
+  max-width: 46vw;
+  text-align: left;
+}
+/* visible state: container becomes interactive */
+#achievement[aria-hidden="false"]{
+  display: block;
+  pointer-events: auto;
+}
+
+/* default window appearance: start off-screen to the right and transparent */
+#achievement .achievement-window{
+  /* match the pause/settings panel look for consistency */
+  min-width: 220px;
+  max-width: 46vw;
+  padding: 12px;
+  border-radius: 12px;
+  box-shadow: 0 6px 30px rgba(0,0,0,0.6);
+  background: linear-gradient(180deg, rgba(6,8,10,0.98), rgba(12,16,18,0.98));
+  border: 1px solid rgba(255,255,255,0.04);
+  color: var(--ui);
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  /* slide-in/out behavior (same easing as other UI) */
+  transform: translateX(110%);
+  opacity: 0;
+  transition: transform 300ms cubic-bezier(.2,.9,.2,1), opacity 300ms ease;
+}
+
+/* visible (slid in) */
+#achievement.slide-in .achievement-window{
+  transform: translateX(0);
+  opacity: 1;
+}
+
+/* Mesmerize: glowing animated rainbow text for achievement titles when .mesmerize is applied */
+#achievement .achievement-window.mesmerize .ach-title{
+  background: linear-gradient(90deg, #ff3b3b, #ff8a3b, #ffd43b, #6bff6b, #3be8ff, #6b6bff, #ff3bff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-weight: 900;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.6);
+  animation: mesmerize-hue 2200ms linear infinite;
+}
+@keyframes mesmerize-hue {
+  0% { filter: hue-rotate(0deg) saturate(120%); }
+  50% { filter: hue-rotate(160deg) saturate(140%); }
+  100% { filter: hue-rotate(360deg) saturate(120%); }
+}
+
+/* slid out to right */
+#achievement.slide-out .achievement-window{
+  transform: translateX(110%);
+  opacity: 0;
+}
+
+#achievement .ach-title{
+  font-weight:800;
+  font-size:15px;
+  color: var(--accent);
+}
+#achievement .ach-sub{
+  font-size:13px;
+  color: rgba(255,255,255,0.9);
+}
+
+/* Pause button (top-right) */
+#pause-btn{
+  position:absolute;
+  top:12px;
+  right:12px;
+  width:44px;
+  height:44px;
+  border-radius:10px;
+  border:0;
+  pointer-events:auto;
+  background:rgba(0,0,0,0.5);
+  color:var(--ui);
+  font-size:18px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  transition:background 120ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+#pause-btn:hover{ background:rgba(0,0,0,0.65); }
+
+/* Pause menu overlay */
+#pause-menu{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  pointer-events:none;
+  opacity:0;
+  transition:opacity 160ms ease;
+  background:rgba(2,4,6,0.45);
+}
+#pause-menu[aria-hidden="false"]{
+  opacity:1;
+  pointer-events:auto;
+}
+.pause-panel{
+  background:linear-gradient(180deg, rgba(6,8,10,0.98), rgba(12,16,18,0.98));
+  border:1px solid rgba(255,255,255,0.04);
+  padding:18px;
+  border-radius:12px;
+  min-width:220px;
+  text-align:center;
+  box-shadow:0 6px 30px rgba(0,0,0,0.6);
+}
+.pause-panel h3{
+  margin:0 0 12px 0;
+  font-size:18px;
+  color:var(--ui);
+}
+.pause-actions{
+  display:flex;
+  gap:10px;
+  justify-content:center;
+  margin-bottom:8px;
+}
+.pause-actions button{
+  min-width:90px;
+  padding:10px 12px;
+  border-radius:8px;
+  border:0;
+  cursor:pointer;
+  font-weight:600;
+  background:var(--accent);
+  color:#04201b;
+  pointer-events:auto;
+}
+.pause-actions button#quit-btn{
+  background:rgba(255,255,255,0.06);
+  color:var(--ui);
+}
+.hint{
+  margin-top:8px;
+  font-size:12px;
+  color:rgba(255,255,255,0.6);
+}
+
+/* Settings panel tweaks */
+.settings-panel{ display:none; }
+#settings-panel[aria-hidden="false"]{ display:block; }
+
+/* Achievements list styling */
+#settings-tab-achievements {
+  pointer-events: auto;
+}
+#settings-tab-achievements #ach-list > div {
+  border: 1px solid rgba(255,255,255,0.03);
+}
+
+.control-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin:8px 0;
+  justify-content:space-between;
+}
+.control-row label{
+  flex:1;
+  text-align:left;
+  font-size:13px;
+  color:var(--ui);
+}
+.control-row input[type="range"]{
+  flex:1.6;
+}
+.control-row span{
+  width:44px;
+  text-align:right;
+  font-size:13px;
+  color:var(--ui);
+}
+.toggle-row{
+  justify-content:space-between;
+  align-items:center;
+}
+
+/* keep existing responsive rules */
+@media(min-width:900px){
+  .joystick{ display:none; }
+  .touch-area{ display:none; }
+  #c{ cursor:grab; }
+}
+
+/* Warning overlay (blocks interaction until acknowledged) */
+#warning-overlay{
+  position:fixed;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(2,2,2,0.82);
+  pointer-events:auto;
+  z-index:9999;
+}
+.warning-panel{
+  width:min(94vw,420px);
+  background:linear-gradient(180deg,#0b0d0f,#121416);
+  border-radius:12px;
+  padding:18px;
+  box-shadow:0 8px 40px rgba(0,0,0,0.7);
+  text-align:left;
+  color:#fff;
+  border:1px solid rgba(255,255,255,0.04);
+}
+.warning-panel h2{
+  margin:0 0 8px 0;
+  font-size:18px;
+  text-align:center;
+}
+.warning-panel p{
+  margin:0 0 14px 0;
+  color:rgba(255,255,255,0.9);
+  font-size:14px;
+  line-height:1.3;
+}
+.warning-actions{
+  display:flex;
+  gap:10px;
+  justify-content:center;
+}
+.warning-actions button{
+  min-width:130px;
+  padding:10px 12px;
+  border-radius:8px;
+  border:0;
+  cursor:pointer;
+  font-weight:700;
+  pointer-events:auto;
+  font-size:13px;
+}
+#warning-accept{
+  background:#4db6ac;
+  color:#04201b;
+}
+#warning-decline{
+  background:rgba(255,255,255,0.06);
+  color:var(--ui);
+}
+
+/* Out-of-bounds HUD message (top-center) */
+#oob{
+  position:absolute;
+  left:50%;
+  top:12px;
+  transform:translateX(-50%) translateY(0);
+  pointer-events:none;
+  color:#ff4b4b;
+  font-weight:800;
+  font-size:18px;
+  text-align:center;
+  text-shadow:0 2px 6px rgba(0,0,0,0.6);
+  opacity:0;
+  transition: none;
+  will-change: transform, opacity;
+  padding:4px 8px;
+  border-radius:6px;
+}
+
+/* Dark dropdown styling for gradient presets to ensure readability */
+#bg-gradient-presets {
+  background: #0b0d0f; /* dark background */
+  color: #ffffff;      /* white text */
+  border-radius: 6px;
+  padding: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  outline: none;
+  border: 0;
+}
+
+/* Danger zone styling for sensitive toggles (compact, localized red accent) */
+.danger-zone {
+  display: inline-block;
+  padding: 8px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(20,6,6,0.28), rgba(30,8,8,0.12));
+  border: 1px solid rgba(255,80,80,0.12);
+  box-shadow: 0 0 0 3px rgba(255,80,80,0.04), 0 6px 18px rgba(0,0,0,0.45);
+  max-width:100%;
+  pointer-events:auto;
+}
+.danger-zone label { color: #ffb3b3; font-weight:700; }
+.danger-zone .danger-note { color: rgba(255,200,200,0.9); opacity:0.95; }
+
+/* Simple divider used above sensitive areas to separate visually */
+.divider {
+  height: 1px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 1px;
+  width: 100%;
+  pointer-events: none;
+}
+
+/* Attempt to style option elements to match dark theme where supported */
+#bg-gradient-presets option {
+  background: #0b0d0f;
+  color: #ffffff;
+}
+
+/* add an explicit focus style so it's visible on keyboard navigation */
+#bg-gradient-presets:focus {
+  box-shadow: 0 0 0 3px rgba(77,182,172,0.18);
+}
+
+/* Ensure asset highlight UI never intercepts pointer/touch events so it cannot block player input */
+#asset-highlight, #asset-highlight * {
+  pointer-events: none !important;
+  touch-action: none !important;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* RESET PROGRESS button (glowing red) inside Achievements panel */
+#settings-tab-achievements .reset-progress-row{
+  display:flex;
+  justify-content:center;
+  margin-top:10px;
+}
+.reset-progress-btn{
+  pointer-events:auto;
+  padding:10px 14px;
+  border-radius:10px;
+  border:0;
+  background: linear-gradient(90deg, #6b0000, #a80000);
+  color: #fff;
+  font-weight:800;
+  box-shadow: 0 6px 20px rgba(168,0,0,0.28), 0 0 12px rgba(255,80,80,0.12) inset;
+  cursor:pointer;
+  min-width:160px;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+.reset-progress-btn:hover{
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(200,30,30,0.32), 0 0 18px rgba(255,60,60,0.12) inset;
+}
+
+/* Confirmation modal for reset (centered inside settings overlay) */
+#reset-confirm {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 10010;
+  display: none;
+}
+#reset-confirm[aria-hidden="false"]{
+  display: block;
+  pointer-events: auto;
+}
+#reset-confirm .confirm-panel{
+  min-width:260px;
+  max-width:92vw;
+  padding:14px;
+  border-radius:12px;
+  background: linear-gradient(180deg, rgba(12,10,10,0.98), rgba(22,8,8,0.98));
+  border:1px solid rgba(255,80,80,0.08);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.6), 0 0 22px rgba(255,80,80,0.06) inset;
+  color: #fff;
+  text-align:center;
+}
+#reset-confirm .confirm-title{
+  font-weight:900;
+  color:#ffb3b3;
+  margin-bottom:6px;
+  font-size:16px;
+}
+#reset-confirm .confirm-sub{
+  font-size:13px;
+  color:rgba(255,255,255,0.9);
+  margin-bottom:12px;
+  line-height:1.2;
+}
+#reset-confirm .confirm-input{
+  width:100%;
+  box-sizing:border-box;
+  padding:8px 10px;
+  border-radius:8px;
+  border:0;
+  background: rgba(255,255,255,0.03);
+  color: var(--ui);
+  font-weight:700;
+  outline: none;
+  margin-top:4px;
+}
+#reset-confirm .confirm-actions{
+  display:flex;
+  gap:10px;
+  justify-content:center;
+}
+#reset-confirm .confirm-actions button{
+  pointer-events:auto;
+  padding:8px 12px;
+  border-radius:8px;
+  border:0;
+  cursor:pointer;
+  font-weight:700;
+}
+#reset-confirm .confirm-yes{
+  background: linear-gradient(90deg, #ff4b4b, #d90000);
+  color:#041010;
+}
+#reset-confirm .confirm-no{
+  background: rgba(255,255,255,0.06);
+  color:var(--ui);
+}
+
+/* Locked -> Creak -> Breaking -> Unlocked animation for achievements list status */
+.ach-status.locked{
+  transition: none;
+  transform: scale(1);
+  box-shadow: none;
+}
+
+/* creak/bend phase: the locked badge warps, creaks and bends out of shape slightly */
+.ach-status.creak{
+  animation: ach-creak 600ms cubic-bezier(.2,.9,.2,1) forwards;
+  background: linear-gradient(90deg, rgba(200,120,80,0.95), rgba(180,60,60,0.9));
+  color: #fff !important;
+  font-weight:900;
+  transform-origin: center;
+  box-shadow: 0 6px 18px rgba(200,80,80,0.12), inset 0 0 8px rgba(255,120,120,0.04);
+}
+
+/* main breaking shard/apart animation (kept but slightly refined) */
+.ach-status.breaking{
+  animation: ach-break 900ms ease forwards;
+  background: linear-gradient(90deg, rgba(160,40,40,0.95), rgba(220,80,80,0.98));
+  color: #fff !important;
+  font-weight:900;
+  transform-origin: center;
+  box-shadow: 0 10px 40px rgba(220,60,60,0.25), inset 0 0 20px rgba(255,120,120,0.06);
+}
+
+/* unlocked state with reveal/glow transition */
+.ach-status.unlocked{
+  transform: scale(1);
+  transition: transform 220ms cubic-bezier(.2,.9,.2,1);
+  background: rgba(77,182,172,0.06) !important;
+  color: #4df0d0 !important;
+  box-shadow: 0 0 0 rgba(77,182,172,0); /* start with no glow until "revealed" toggles it */
+}
+
+/* added class applied when the glow should reveal */
+.ach-status.revealed {
+  /* subtle pop + glow reveal */
+  transform: scale(1.06);
+  box-shadow: 0 14px 50px rgba(77,182,172,0.22), inset 0 0 20px rgba(77,182,172,0.06);
+  transition: transform 320ms cubic-bezier(.2,.9,.2,1), box-shadow 420ms cubic-bezier(.2,.9,.2,1);
+}
+
+/* creak keyframes: skew, squash/stretch, slight rotation and color flicker to suggest strain */
+@keyframes ach-creak {
+  0% {
+    transform: perspective(300px) rotateX(0deg) scale(1) skewX(0deg) skewY(0deg);
+    filter: saturate(1) blur(0px);
+    opacity: 1;
+  }
+  30% {
+    transform: perspective(300px) rotateX(4deg) rotateZ(-2deg) scale(1.02) skewX(-6deg) skewY(3deg);
+    filter: saturate(1.1);
+  }
+  60% {
+    transform: perspective(300px) rotateX(-6deg) rotateZ(4deg) scale(0.95) skewX(8deg) skewY(-4deg);
+    filter: saturate(1.25) blur(0.6px);
+  }
+  100% {
+    transform: perspective(300px) rotateX(0deg) scale(1) skewX(0deg) skewY(0deg);
+    filter: none;
+    opacity: 1;
+  }
+}
+
+/* Breaking animation kept similar but allowed to follow creak phase gracefully */
+@keyframes ach-break {
+  0% {
+    transform: perspective(400px) rotateX(0deg) scale(1);
+    filter: saturate(1) blur(0px);
+    opacity: 1;
+  }
+  35% {
+    transform: perspective(400px) rotateX(24deg) rotateZ(-8deg) scale(1.08);
+    filter: saturate(1.2) blur(0.8px);
+    opacity: 1;
+  }
+  70% {
+    transform: perspective(400px) rotateX(-14deg) rotateZ(10deg) scale(0.94);
+    filter: saturate(1.4) blur(1.8px);
+    opacity: 0.9;
+  }
+  100% {
+    transform: perspective(400px) rotateX(0deg) scale(1);
+    filter: none;
+    opacity: 0.999;
+  }
+}
