@@ -79,8 +79,8 @@ window.addEventListener("resize", () => {
 const playBtn = document.getElementById("playBtn");
 if (playBtn) {
   playBtn.addEventListener("click", () => {
-    // redirect to a YouTube video
-    window.location.href = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+    // redirect to a link 
+    window.location.href = "https://mrvaporwave25.github.io/3d-world/";
   });
 }
 
